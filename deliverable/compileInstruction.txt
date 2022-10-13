@@ -1,0 +1,4 @@
+To compile this program, run:
+	javac MyServer.java
+To run compiled program, run:
+	java MyServer
