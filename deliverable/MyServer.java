@@ -1,33 +1,56 @@
+
+//Import base libraries for console output and networking procedures.
 import java.net.*;
 import java.io.*;
 import java.nio.file.*;
 
-//New libraries for file permissions
+//Import Libraries for file attributes and file permissions.
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
 
-public class MyServer {
-    public static void main(String[] args) throws Exception {
+public class MyServer 
+{
+    //Main function, throws an exception if we can't create a socket.
+    public static void main(String[] args) throws Exception 
+    {
+        //This is the root document path represented as a string.
         String root_path;
+
+        //This is the port number we pass via the command line.
         int port;
+
+        //This is an array of the arguments we pass via the command line.
         String[] parsedArgs = parseCommandLineArgs(args);
 
+        //Document root is the first arugment we pass, and port number is the second 
+        //argument we pass. We need to call parse int to ensure that port is an integer.
         root_path = parsedArgs[0];
         port = Integer.parseInt(parsedArgs[1]);
 
-        try {
-            ServerSocket serverSocket = new ServerSocket(port);
-            while (true) {
-                try  {
-                    // multi-threading, spawn a worker thread to handle request
-                    Socket client = serverSocket.accept();
+        try 
+        {
+            //Create a new server socket object using the port number we passed in from the command line.
+            ServerSocket serverSock = new ServerSocket(port);
+
+            //Infinite loop, keep getting requests from clients. This means that we have to focibly end our 
+            //program and it also means that we will have to use differnet ports since the ServerSocket 
+            //never gets closed if we forcibly end the program.
+            while (true) 
+            {
+                try
+                {
+                    //Multi-threading approach, we will spawn a worker thread to handle each request
+                    //made by any client.
+                    Socket client = serverSock.accept();
                     Worker worker = new Worker(client, root_path);
                     worker.start();
-                }catch(Exception e){
+                }catch(Exception e)
+                {
                     System.err.println("Creating worker error:"+e);
                 }
             }
-        }catch (Exception ee){
+        }catch (Exception ee)
+        {
             System.err.println("Creating Server socket error:"+ee);
         }
     }
