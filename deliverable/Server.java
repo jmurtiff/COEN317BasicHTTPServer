@@ -1,14 +1,20 @@
+//Name: Jordan Murtiff
+//Date: 10-13-22
+//Course: COEN 317 - Distributed Systems
+//Assignment: Programming Assignment 1
 
-//Import base libraries for console output and networking procedures.
+//Import base libraries for console output, networking procedures, as well as reading from files the
+//client requests.
 import java.net.*;
 import java.io.*;
 import java.nio.file.*;
 
-//Import Libraries for file attributes and file permissions.
+//Import libraries for file attributes and file permissions (we need this for error code 403).
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
 
-public class MyServer 
+//The Server class is the base class for main and for parsing arguments.
+public class Server 
 {
     //Function to help parse our 2 command line arguments
     private static String[] parseCommandLineArgs(String[] arguments)
@@ -260,9 +266,6 @@ class Worker extends Thread
             catch (IOException ee){} 
         }
     }
-
-    
-
 
     //In order to handle the default page (the filepath being just "/") we need to write a function
     //in order to return the document path + /index/html added on the end of it. If the ("/") is not used
