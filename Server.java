@@ -164,7 +164,7 @@ class Worker extends Thread
             //Method is a string with the HTTP request type (GET, HEAD, POST, etc).
             String method = firstLine[0];
 
-            //This is the file path 
+            //This is the file path.
             String path = firstLine[1];
 
             //The "getFilePath" function helps to resolve the file path if there is only a "/" given by the user
