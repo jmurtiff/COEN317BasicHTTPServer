@@ -1,4 +1,6 @@
-To compile this program, run:
-	javac MyServer.java
-To run compiled program, run:
-	java MyServer
+1. To compile this program, run:
+	javac Server.java
+
+2. To run compiled program, run:
+	java Server – document_root <$DOCUMENT_ROOT> - port <$PORT>
+		For example this could be: java Server – document_root /home/ubuntu/webserver_files – port 8888

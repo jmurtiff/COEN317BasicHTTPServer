@@ -19,8 +19,8 @@ public class Server
     //Function to help parse our 2 command line arguments
     private static String[] parseCommandLineArgs(String[] arguments)
     {
-        String root_path = " ";
-        String port = " ";
+        String root_file_path = " ";
+        String port_num = " ";
 
         //If you run the program with document root first or second, this
         //for loop will correctly associate root and port with their associated 
@@ -29,39 +29,39 @@ public class Server
         {
             if (arguments[i].equals("-document_root"))
             {
-                root_path = arguments[i+1];
+                root_file_path = arguments[i+1];
             }
             else if (arguments[i].equals("-port")) 
             {
-                port = arguments[i+1];
+                port_num = arguments[i+1];
             }
         }
         //Return array of strings with first element being document root path and second
         //element being port number.
-        return new String[]{root_path, port};
+        return new String[]{root_file_path, port_num};
     }
 
     //Main function, throws an exception if we can't create a socket.
     public static void main(String[] args) throws Exception 
     {
         //This is the root document path represented as a string.
-        String root_path;
+        String root_file_path;
 
         //This is the port number we pass via the command line.
-        int port;
+        int port_num;
 
         //This function parses our two command line arguments and returns an array of string objects.
         String[] parsedArgs = parseCommandLineArgs(args);
 
         //Document root is the first argument we pass, and port number is the second 
         //argument we pass. We need to call parse int to ensure that port is an integer.
-        root_path = parsedArgs[0];
-        port = Integer.parseInt(parsedArgs[1]);
+        root_file_path = parsedArgs[0];
+        port_num = Integer.parseInt(parsedArgs[1]);
 
         try 
         {
             //Create a new server socket object using the port number we passed in from the command line.
-            ServerSocket serverSock = new ServerSocket(port);
+            ServerSocket serverSock = new ServerSocket(port_num);
 
             //Infinite loop, keep getting requests from clients. This means that we have to forcibly end our 
             //program and it also means that we will have to use different ports since the ServerSocket 
@@ -75,10 +75,10 @@ public class Server
                     Socket client = serverSock.accept();
 
                     //Pass the client socket as well as the document root path to the worker thread.
-                    Worker worker = new Worker(client, root_path);
+                    Worker worker_thread = new Worker(client, root_file_path);
 
                     //Execute the thread's "run" function 
-                    worker.start();
+                    worker_thread.start();
 
                 }
                 //If we can't create a worker thread, throw an error.
@@ -101,11 +101,11 @@ public class Server
 class Worker extends Thread
 {
     Socket client;
-    String root_path;
+    String root_file_path;
 
     //Worker constructor function, passes in client socket and document root path
     //in the constructor call.
-    public Worker(Socket client, String root_path)
+    public Worker(Socket client, String root_file_path)
     {
         this.client = client;
         try 
@@ -114,11 +114,11 @@ class Worker extends Thread
         }
         catch(Exception e)
         {
-            System.out.println("Constructor error:");
+            System.out.println("Worker Object Constructor issue:");
             System.out.println(e);
         }
 
-        this.root_path = root_path;
+        this.root_file_path = root_file_path;
     }
 
     //This function sends a HTTP version 1.0 response from the server to the client through the socket's 
@@ -273,12 +273,11 @@ class Worker extends Thread
     //test/ServerDocuments/ + test.txt).
     private Path getFilePath(String path) 
     {
-        // handling the default page
         if ("/".equals(path)) 
         {
             path = "/index.html";
         }
-        String absolute_path = this.root_path + path;
+        String absolute_path = this.root_file_path + path;
         return Paths.get(absolute_path);
     }
     
