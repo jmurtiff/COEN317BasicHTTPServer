@@ -211,7 +211,7 @@ class Worker extends Thread
                     String contentType = getContentType(filePath);
 
                     //The contentType could be text/html, jpg, gif, etc, and we need to read all the bytes 
-                    //of a file in order to 
+                    //of a file in order to send it to the client.
                     this.sendResponse("200 OK", contentType, Files.readAllBytes(filePath));
                 }
             }
