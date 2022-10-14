@@ -108,16 +108,6 @@ class Worker extends Thread
     public Worker(Socket client, String root_file_path)
     {
         this.client = client;
-        try 
-        {
-
-        }
-        catch(Exception e)
-        {
-            System.out.println("Worker Object Constructor issue:");
-            System.out.println(e);
-        }
-
         this.root_file_path = root_file_path;
     }
 
@@ -263,7 +253,10 @@ class Worker extends Thread
             {
                 this.sendResponse("400 Bad Request", "text/html", "<h1><b>400 Bad Request</b></h1>".getBytes());
             }
-            catch (IOException ee){} 
+            catch (IOException ee)
+            {
+
+            }
         }
     }
 
