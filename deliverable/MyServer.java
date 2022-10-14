@@ -19,7 +19,7 @@ public class MyServer
         //This is the port number we pass via the command line.
         int port;
 
-        //This is an array of the arguments we pass via the command line.
+        //This function parses our two command line arguments and returns an array of string objects.
         String[] parsedArgs = parseCommandLineArgs(args);
 
         //Document root is the first arugment we pass, and port number is the second 
@@ -32,7 +32,7 @@ public class MyServer
             //Create a new server socket object using the port number we passed in from the command line.
             ServerSocket serverSock = new ServerSocket(port);
 
-            //Infinite loop, keep getting requests from clients. This means that we have to focibly end our 
+            //Infinite loop, keep getting requests from clients. This means that we have to forcibly end our 
             //program and it also means that we will have to use differnet ports since the ServerSocket 
             //never gets closed if we forcibly end the program.
             while (true) 
@@ -42,73 +42,129 @@ public class MyServer
                     //Multi-threading approach, we will spawn a worker thread to handle each request
                     //made by any client.
                     Socket client = serverSock.accept();
+
+                    //Pass the client socket as well as the document root path to the worker thread.
                     Worker worker = new Worker(client, root_path);
+
+                    //Execute the thread's "run" function 
                     worker.start();
-                }catch(Exception e)
+
+                }
+                //If we can't create a owrker thread, throw an error.
+                catch(Exception e)
                 {
-                    System.err.println("Creating worker error:"+e);
+                    System.err.println("Error creating worker thread:"+e);
                 }
             }
-        }catch (Exception ee)
+        }
+        
+        //If we can't create the server socket for some reason, throw an error
+        catch (Exception ee)
         {
-            System.err.println("Creating Server socket error:"+ee);
+            System.err.println("Error creating server socket:"+ee);
         }
     }
 
-    // parse command line args
-    private static String[] parseCommandLineArgs(String[] args){
-        String root_path=" ", port=" ";
-        for (int i=0; i < args.length; i++){
-            if (args[i].equals("-document_root")){
-                root_path = args[i+1];
+    //Function to help parse our 2 command line arguments
+    private static String[] parseCommandLineArgs(String[] arguments)
+    {
+        String root_path = " ";
+        String port = " ";
+
+        //If you run the program with document root first or second, this
+        //for loop will correctly associate root and port with their associated 
+        //string variables.
+        for (int i = 0; i < arguments.length; i++)
+        {
+            if (arguments[i].equals("-document_root"))
+            {
+                root_path = arguments[i+1];
             }
-            else if (args[i].equals("-port")) {
-                port = args[i+1];
+            else if (arguments[i].equals("-port")) 
+            {
+                port = arguments[i+1];
             }
         }
+        //Return array of strings with first element being document root path and second
+        //element being port number.
         return new String[]{root_path, port};
     }
 
 }
 
-// worker thread class for multi-threading
-class Worker extends Thread{
+//Worker thread class that is basis for multithreading approach.
+class Worker extends Thread
+{
     Socket client;
     String root_path;
 
-    public Worker(Socket client, String root_path){
+    //Worker constructor function, passes in client socket and document root path
+    //in the constructor call.
+    public Worker(Socket client, String root_path)
+    {
         this.client = client;
-        try {
-        }catch(Exception e){
+        try 
+        {
+
+        }
+        catch(Exception e)
+        {
             System.out.println("Constructor error:");
             System.out.println(e);
         }
+
         this.root_path = root_path;
     }
 
-    public void run(){
-        try {
+    //This is our worker function
+    public void run()
+    {
+        try 
+        {
+            //Create a buffer reader that reads what the client is going to send the server (the GET request).
             BufferedReader br = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
             StringBuilder requestBuilder = new StringBuilder();
             String line;
-            while (!(line = br.readLine()).isBlank()) {
+
+            //Take each line of the HTTP GET request and append it to the requestBuilder object (as long as the 
+            //line isn't blank)
+            while (!(line = br.readLine()).isBlank()) 
+            {
                 requestBuilder.append(line + "\r\n");
             }
-            //This prints out the "Get" request message to the console.
+
+            //No we need to print out the GET request to the console, so we need to convert the
+            //StringBuilder object to a string and then print it out so we can log the GET requests.
+            //as per the assignment requirements.
             String request = requestBuilder.toString();
             System.out.println(request);
+
+            //Split the HTTP request up by lines (as we need the first line for error detection)
             String[] splitedRequest = request.split("\r\n");
+
+            //With the lines plit, we take the first line of the HTTP request (for example GET /index.html HTTP/1.1)
+            //so we can access the method (GET, HEAD, POST, etc) for checking Error code 400 as well as the file path
+            //for checking error code 404.
             String[] firstLine = splitedRequest[0].split("\\s+");
+
+            //Method is a string with the HTTP request type (GET, HEAD, POST, etc).
             String method = firstLine[0];
+
+            //This is the file path 
             String path = firstLine[1];
+
+            //The "getFilePath" function helps to resolve the file path if there is only a "/" given by the user
+            //as it defaults to "document root + index.html" instead. This function eseentially takes the file path 
+            //given by the user and adds on the document
             Path filePath = this.getFilePath(path);
 
 
             System.out.println(filePath);
             System.out.println();
 
-            // error handling
-            if (!method.equals("GET")){
+            //
+            if (!method.equals("GET"))
+            {
                 //400 Bad Request", "text/html", "<h1><b>400 Bad Request</b></h1>".getBytes()
                 this.sendResponse("400 Bad Request", "text/html", "<h1><b>400 Bad Request</b></h1>".getBytes());
             }
@@ -116,9 +172,9 @@ class Worker extends Thread{
             else if(Files.exists(filePath))
             {
                 //Need to check file permissions
-                //Path filepaths = Paths.get(filePath);
                 PosixFileAttributes attrs = Files.readAttributes(filePath, PosixFileAttributes.class);
                 String permissionsString = PosixFilePermissions.toString(attrs.permissions());
+                
                 //If you cannot read or execute the file that the client wants (or both) then its forbidden.
                 if(permissionsString.charAt(6) == '-')
                 {
@@ -154,8 +210,8 @@ class Worker extends Thread{
     }
 
     // return response
-    private void sendResponse(String status, String contentType, byte[] content)
-            throws IOException {
+    private void sendResponse(String status, String contentType, byte[] content) throws IOException 
+    {
         OutputStream clientOutput = this.client.getOutputStream();
 
 
@@ -184,12 +240,14 @@ class Worker extends Thread{
         this.client.close();
     }
 
-    private String getContentType(Path filePath) throws IOException {
+    private String getContentType(Path filePath) throws IOException 
+    {
         return Files.probeContentType(filePath);
     }
 
 
-    private Path getFilePath(String path) {
+    private Path getFilePath(String path) 
+    {
         // handling the default page
         if ("/".equals(path)) {
             path = "/index.html";
