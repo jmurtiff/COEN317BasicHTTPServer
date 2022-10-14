@@ -58,41 +58,23 @@ public class Server
         root_file_path = parsedArgs[0];
         port_num = Integer.parseInt(parsedArgs[1]);
 
-        try 
+        //Create a new server socket object using the port number we passed in from the command line.
+        ServerSocket serverSock = new ServerSocket(port_num);
+
+        //Infinite loop, keep getting requests from clients. This means that we have to forcibly end our 
+        //program and it also means that we will have to use different ports since the ServerSocket 
+        //never gets closed if we forcibly end the program.
+        while (true) 
         {
-            //Create a new server socket object using the port number we passed in from the command line.
-            ServerSocket serverSock = new ServerSocket(port_num);
+            //Multi-threading approach, we will spawn a worker thread to handle each request
+            //made by any client.
+            Socket client = serverSock.accept();
 
-            //Infinite loop, keep getting requests from clients. This means that we have to forcibly end our 
-            //program and it also means that we will have to use different ports since the ServerSocket 
-            //never gets closed if we forcibly end the program.
-            while (true) 
-            {
-                try
-                {
-                    //Multi-threading approach, we will spawn a worker thread to handle each request
-                    //made by any client.
-                    Socket client = serverSock.accept();
-
-                    //Pass the client socket as well as the document root path to the worker thread.
-                    Worker worker_thread = new Worker(client, root_file_path);
-
-                    //Execute the thread's "run" function 
-                    worker_thread.start();
-
-                }
-                //If we can't create a worker thread, throw an error.
-                catch(Exception e)
-                {
-                    System.err.println("Error creating worker thread:"+e);
-                }
-            }
-        }
-        
-        //If we can't create the server socket for some reason, throw an error
-        catch (Exception ee)
-        {
-            System.err.println("Error creating server socket:"+ee);
+            //Pass the client socket as well as the document root path to the worker thread.
+            Worker worker_thread = new Worker(client, root_file_path);
+            
+            //Execute the thread's "run" function 
+            worker_thread.start();
         }
     }
 }
